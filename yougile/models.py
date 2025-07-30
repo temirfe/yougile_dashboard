@@ -2,8 +2,10 @@ from django.db import models
 from django.conf import settings
     
 class Project(models.Model):
-    api_id = models.CharField(max_length=50)
+    api_id = models.CharField(max_length=50, unique=True, db_index=True)
     title = models.CharField(max_length=255)
+    company = models.CharField(max_length=50, blank=True, null=True)
+    trackable = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -11,7 +13,7 @@ class Project(models.Model):
         return self.title
 
 class Board(models.Model):
-    api_id = models.CharField(max_length=50)
+    api_id = models.CharField(max_length=50, unique=True, db_index=True)
     title = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='boards')
     project_api_id = models.CharField(max_length=50)
@@ -22,7 +24,7 @@ class Board(models.Model):
         return self.title
     
 class Ycolumn(models.Model):
-    api_id = models.CharField(max_length=50)
+    api_id = models.CharField(max_length=50, unique=True, db_index=True)
     title = models.CharField(max_length=255)
     color = models.IntegerField()
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='columns')
@@ -34,7 +36,7 @@ class Ycolumn(models.Model):
         return self.title
     
 class Task(models.Model):
-    api_id = models.CharField(max_length=50)
+    api_id = models.CharField(max_length=50, unique=True, db_index=True)
     parent = models.ForeignKey(
         'self',  # This refers to the Task model itself
         on_delete=models.CASCADE, # Or models.SET_NULL, models.PROTECT, etc., depending on your desired behavior
@@ -47,7 +49,7 @@ class Task(models.Model):
         related_name='tasks',
         blank=True
     )
-    ycolumn = models.ForeignKey(Ycolumn, on_delete=models.SET_NULL, related_name='tasks')
+    ycolumn = models.ForeignKey(Ycolumn, on_delete=models.SET_NULL, related_name='tasks', null=True)
     column_api_id =models.CharField(max_length=50)
     title = models.CharField(max_length=255)
     title = models.TextField(blank=True,null=True)
