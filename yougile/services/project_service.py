@@ -1,8 +1,4 @@
 from yougile.models import Project
-from django.db import transaction
-from django.conf import settings
-import requests
-import json
 import logging
 from yougile.services.yg_api_client import ExternalApiClient, ExternalApiException
 

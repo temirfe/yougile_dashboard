@@ -26,7 +26,7 @@ class Board(models.Model):
 class Ycolumn(models.Model):
     api_id = models.CharField(max_length=50, unique=True, db_index=True)
     title = models.CharField(max_length=255)
-    color = models.IntegerField()
+    color = models.IntegerField(blank=True, null=True)
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='columns')
     board_api_id = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)

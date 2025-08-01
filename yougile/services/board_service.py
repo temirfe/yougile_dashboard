@@ -11,11 +11,11 @@ def fetch_boards(company, project_id=''):
     """
     try:
         api_client = ExternalApiClient(company=company)
-        path="/boards"
+        params=None
         if project_id:
-            path+=f"&projectId={project_id}"
+            params={'projectId':project_id}
         # Just specify the endpoint relative to the base URL
-        api_data = api_client.get(path)
+        api_data = api_client.get("/boards", params=params)
         return api_data
     except ExternalApiException as e:
         logger.error(f"Failed to fetch projects: {e.message} (Status: {e.status_code})")
