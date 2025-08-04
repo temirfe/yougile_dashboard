@@ -1,4 +1,4 @@
-from yougile.models import Ycolumn, Board
+from yougile.models import Ycolumn, Task
 import logging
 from yougile.services.yg_api_client import ExternalApiClient, ExternalApiException
 
@@ -25,35 +25,35 @@ def fetch_tasks(company, column_id=None, offset=0, limit=1000):
         raise
 
 def save_tasks(tasks):
-    # Extract all unique project_ids
-    unique_column_api_ids = set(bd.get('boardId') for bd in columns if 'boardId' in bd)
-    #logger.info(f"unique_board_api_ids {unique_board_api_ids}")
+    # Extract all unique column_ids
+    unique_column_api_ids = set(bd.get('columnId') for bd in tasks if 'columnId' in bd)
+    #logger.info(f"unique_column_api_ids {unique_column_api_ids}")
 
-    # Fetch all necessary Board objects in one query
-    boards = Board.objects.filter(api_id__in=list(unique_board_api_ids))
-    board_lookup = {board.api_id: board for board in boards}
+    # Fetch all necessary Ycolumn objects in one query~
+    columns = Ycolumn.objects.filter(api_id__in=list(unique_column_api_ids))
+    column_lookup = {column.api_id: column for column in columns}
 
     objects_to_save = []
 
     for data in tasks:
         name = data.get('title')
-        board_api_id = data.get('boardId')
-        column_api_id = data.get('id')
+        column_api_id = data.get('columnId')
+        task_api_id = data.get('id')
         color = data.get('color')
 
-        board = board_lookup.get(board_api_id)
+        column = column_lookup.get(column_api_id)
 
-        if not board:
-            print(f"Warning: Board with API ID {board_api_id} not found for column '{name}'. Skipping column.")
+        if not column:
+            print(f"Warning: column with API ID {column_api_id} not found for task '{name}'. Skipping task.")
             continue
 
         # Create a Board instance (it won't hit the DB yet)
         objects_to_save.append(
-            Ycolumn(
+            Task(
                 title=name,
-                api_id=column_api_id,
-                board=board,
-                board_api_id=board_api_id,
+                api_id=task_api_id,
+                column=column,
+                column_api_id=column_api_id,
                 color=color
             )
         )
@@ -63,7 +63,7 @@ def save_tasks(tasks):
         # The 'fields' argument specifies which unique constraint to check for conflicts.
         # It must match a unique field or a UniqueConstraint.
         # If a conflict occurs on 'api_id', then the 'update_fields' will be applied.
-        created_count = Ycolumn.objects.bulk_create(
+        created_count = Task.objects.bulk_create(
             objects_to_save,
             update_conflicts=True,
             unique_fields=['api_id'], # The field(s) used to detect a conflict
@@ -74,7 +74,7 @@ def save_tasks(tasks):
         # but for others (like PostgreSQL) it returns the number of *inserted* rows, not including updates.
         # So, it's harder to get exact counts of created vs. updated from the return value.
 
-def fetch_and_save_columns(company, board_id=None):
+def fetch_and_save_taks(company, column_id=None):
     ret = []
     has_next=True
     offset=0
@@ -84,9 +84,9 @@ def fetch_and_save_columns(company, board_id=None):
         print(f"offset: {offset}, yoba: {yoba}")
         if yoba > 3:
             has_next = False
-        result = fetch_columns(company,board_id,offset,limit)
+        result = fetch_tasks(company,column_id,offset,limit)
         if result and 'content' in result:
-            save_columns(result['content'])
+            save_tasks(result['content'])
             ret.append(True)
             paging = result.get("paging", {})
             if paging.get("next"):
@@ -98,10 +98,10 @@ def fetch_and_save_columns(company, board_id=None):
         yoba += 1
     return ret
 
-def fetch_and_save_all_companies_columns():
+def fetch_and_save_all_companies_tasks():
     companies = ['dartlab','prosoft','product','pm']
     results =[]
     for company in companies:
-        res = fetch_and_save_columns(company)
+        res = fetch_and_save_taks(company)
         results.append(res)
     return results
