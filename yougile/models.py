@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
     
 class Project(models.Model):
     api_id = models.CharField(max_length=50, unique=True, db_index=True)
@@ -52,16 +53,16 @@ class Task(models.Model):
     ycolumn = models.ForeignKey(Ycolumn, on_delete=models.SET_NULL, related_name='tasks', null=True)
     column_api_id =models.CharField(max_length=50)
     title = models.CharField(max_length=255)
-    title = models.TextField(blank=True,null=True)
+    description = models.TextField(blank=True,default='')
     deleted = models.BooleanField(default=False)
-    arhived = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
-    completed_at = models.DateTimeField() #completedTimestamp
-    deadline = models.DateTimeField()
+    completed_at = models.DateTimeField(null=True) #completedTimestamp
+    deadline = models.DateTimeField(null=True)
     api_user_id = models.CharField(max_length=50) #createdBy
-    time_plan = models.DecimalField(max_digits=10,decimal_places=2)
-    time_work = models.DecimalField(max_digits=10,decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
+    time_plan = models.DecimalField(max_digits=10,decimal_places=2, null=True)
+    time_work = models.DecimalField(max_digits=10,decimal_places=2, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
