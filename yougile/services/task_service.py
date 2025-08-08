@@ -6,6 +6,7 @@ from django.utils import timezone
 from account.models import Profile
 from django.contrib.auth import get_user_model
 from typing import Optional
+import time
 
 logger = logging.getLogger(__name__)
 current_company = None
@@ -22,7 +23,7 @@ def fetch_task(company, task_api_id):
         data = api_client.get(f"/tasks/{task_api_id}")
         return data
     except ExternalApiException as e:
-        logger.error(f"Failed to fetch columns: {e.message} (Status: {e.status_code})")
+        logger.error(f"Failed to fetch task: {task_api_id} (Status: {e.status_code})")
         # Re-raise or handle as per your application's error strategy
         raise
     except Exception as e:
@@ -114,6 +115,10 @@ def save_single_task(data: dict, column_lookup: dict, parent: Optional[Task] = N
             api_id=data['id'],
             defaults=to_save_map
         )
+    """ if created:
+        print(f'created {task.title}')
+    else:
+        print(f'updated {task.title}, id: {task.id}') """
     
     #check if task has users
     if 'assigned' in data:
@@ -136,15 +141,16 @@ def save_single_task(data: dict, column_lookup: dict, parent: Optional[Task] = N
 def fetch_and_save_tasks(company, column_id=None):
     ret = []
     has_next=True
-    offset=0
+    offset=1350
     yoba = 0
-    limit=1000
+    limit=25
     while has_next:
         print(f"offset: {offset}, yoba: {yoba}")
-        if yoba > 10:
+        if yoba > 1:
             has_next = False
         result = fetch_tasks(company,column_id,offset,limit)
         if result and 'content' in result:
+            print(f'fetch_tasks result count: {len(result['content'])}')
             save_tasks(result['content'])
             ret.append(True)
             paging = result.get("paging", {})
@@ -155,12 +161,40 @@ def fetch_and_save_tasks(company, column_id=None):
         else:
             has_next = False
         yoba += 1
+        print('sleeping...')
+        time.sleep(20)
     return ret
 
 def fetch_and_save_all_companies_tasks():
-    companies = ['dartlab','prosoft','product','pm']
+    exlude_columns = ['Testing Done','Done','Sprint Done','Test Complete','Test Completed', 'Done this week','Done for Today']
+    
+    companies = ['dartlab']
+    #companies = ['dartlab','prosoft','product','pm']
     results =[]
     for company in companies:
         res = fetch_and_save_tasks(company)
         results.append(res)
     return results
+
+def fetch_and_save_by_active_columns(start=70, increment=5):
+    ret = []
+    while end <= 303:
+        end = start + increment
+        i = start
+        not_done_columns = Ycolumn.objects.not_dones()[start:end] #302
+        for column in not_done_columns:
+            print(f'i: {i}, start {start}, end {end}')
+            company=column.board.project.company
+            
+            result = fetch_tasks(company,column.api_id)
+            if result and 'content' in result:
+                save_tasks(result['content'])
+            else:
+                print('suka')
+            i+=1
+        start +=increment
+        time.sleep(30)
+    return 'done'
+
+def yoba():
+    print('suka')

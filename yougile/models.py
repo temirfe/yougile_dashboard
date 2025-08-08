@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from django.db.models import Q
     
 class Project(models.Model):
     api_id = models.CharField(max_length=50, unique=True, db_index=True)
@@ -24,6 +25,21 @@ class Board(models.Model):
     def __str__(self):
         return self.title
     
+class YcolumnManager(models.Manager):
+    def dones(self):
+        """Returns Ycolumn objects where the title contains 'Done', 'Complete', or 'Completed'."""
+        return self.filter(
+            Q(title__icontains='done') |
+            Q(title__icontains='complete')
+        )
+    
+    def not_dones(self):
+        """Returns Ycolumn objects where the title does not contain 'Done', 'Complete', or 'Completed'."""
+        return self.filter(
+            ~Q(title__icontains='done') &
+            ~Q(title__icontains='complete')
+        )
+    
 class Ycolumn(models.Model):
     api_id = models.CharField(max_length=50, unique=True, db_index=True)
     title = models.CharField(max_length=255)
@@ -32,6 +48,8 @@ class Ycolumn(models.Model):
     board_api_id = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    objects = YcolumnManager()
     
     def __str__(self):
         return self.title

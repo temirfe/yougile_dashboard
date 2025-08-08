@@ -1,9 +1,10 @@
 from django.shortcuts import render
+from yougile.models import Ycolumn
 from yougile.services.project_service import fetch_and_save_all_companies,fetch_and_save
 from yougile.services.board_service import fetch_and_save_all_companies_boards,fetch_and_save_boards
 from yougile.services.column_service import fetch_and_save_all_companies_columns,fetch_and_save_columns
 from yougile.services.user_service import fetch_and_save_all_companies_users
-from yougile.services.task_service import fetch_and_save_all_companies_tasks, fetch_and_save_tasks
+from yougile.services.task_service import fetch_and_save_all_companies_tasks, fetch_and_save_by_active_columns
 from django.http import HttpResponse
 
 def fetch_yougile_projects(request):
@@ -30,9 +31,19 @@ def fetch_yougile_users(request):
     return HttpResponse(f'fetch users {context}')
 
 def fetch_yougile_tasks(request):
-    context = fetch_and_save_tasks('dartlab','787c50f1-f630-4f70-9a10-f5d9d72a5dd6')
+    #context = fetch_and_save_tasks('dartlab','787c50f1-f630-4f70-9a10-f5d9d72a5dd6')
+    #context = fetch_and_save_all_companies_tasks()
+    context = fetch_and_save_by_active_columns()
     return HttpResponse(f'fetch_yougile_tasks {context}')
 
 
 def yoba(request):
-    return HttpResponse('wassap')
+    not_done_columns = Ycolumn.objects.not_dones()[:2] #302
+    lens=len(not_done_columns)
+    #cclm=Ycolumn.objects.get(id=5568)
+    pila = []
+    for column in not_done_columns:
+        company=column.board.project.company
+        pila.append(column.api_id)
+
+    return HttpResponse(f'wassap {pila}, lens {lens}')
