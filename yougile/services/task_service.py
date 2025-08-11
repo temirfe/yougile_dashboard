@@ -1,4 +1,4 @@
-from yougile.models import Ycolumn, Task
+from yougile.models import Ycolumn, Task, Workhour
 import logging
 from yougile.services.yg_api_client import ExternalApiClient, ExternalApiException
 import datetime
@@ -176,8 +176,9 @@ def fetch_and_save_all_companies_tasks():
         results.append(res)
     return results
 
-def fetch_and_save_by_active_columns(start=70, increment=5):
+def fetch_and_save_by_active_columns(start=284, increment=5):
     ret = []
+    end=0
     while end <= 303:
         end = start + increment
         i = start
@@ -193,8 +194,62 @@ def fetch_and_save_by_active_columns(start=70, increment=5):
                 print('suka')
             i+=1
         start +=increment
+        print('sleeping...')
         time.sleep(30)
     return 'done'
 
+def calc_hours(today=False):
+    # Step 1: Base queryset
+    tasks = Task.objects.filter(
+        completed_at__isnull=False,
+        time_plan__isnull=False,
+        time_work__isnull=False
+    )
+
+    # Step 2: Filter for today if needed
+    if today:
+        tasks = tasks.filter(completed_at__date=datetime.date.today())
+
+    calcs = {}
+
+    # Step 3: Loop through tasks
+    for task in tasks.prefetch_related('users'):
+        completed_day = timezone.make_naive(task.completed_at).date()
+        users = list(task.users.all())
+        
+        if not users:
+            continue
+
+        plan_per_user = task.time_plan / len(users)
+        work_per_user = task.time_work / len(users)
+
+        for user in users:
+            if completed_day not in calcs:
+                calcs[completed_day] = {}
+
+            if user.id not in calcs[completed_day]:
+                calcs[completed_day][user.id] = {
+                    'plan': plan_per_user,
+                    'work': work_per_user
+                }
+            else:
+                calcs[completed_day][user.id]['plan'] += plan_per_user
+                calcs[completed_day][user.id]['work'] += work_per_user
+
+    # Step 4: Save into Workhour
+    for workday, user_data in calcs.items():
+        for user_id, calc in user_data.items():
+            workhour, _ = Workhour.objects.get_or_create(
+                user_id=user_id,
+                workday=workday,
+                defaults={'plan': calc['plan'], 'work': calc['work']}
+            )
+            if not _:
+                # Update if it already exists
+                workhour.plan = calc['plan']
+                workhour.work = calc['work']
+                workhour.save()
+
+
 def yoba():
-    print('suka')
+    fetch_and_save_by_active_columns()
