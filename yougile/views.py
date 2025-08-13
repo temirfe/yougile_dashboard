@@ -1,15 +1,15 @@
 from django.shortcuts import render
 from yougile.models import Project, Board, Ycolumn
-from yougile.services.project_service import fetch_and_save_all_companies,fetch_and_save
+from yougile.services.project_service import fetch_and_save_all_companies_projects,fetch_and_save_projects
 from yougile.services.board_service import fetch_and_save_all_companies_boards,fetch_and_save_boards
 from yougile.services.column_service import fetch_and_save_all_companies_columns,fetch_and_save_columns
-from yougile.services.user_service import fetch_and_save_all_companies_users
+from yougile.services.user_service import fetch_and_save_all_companies_users, fetch_and_save_users
 from yougile.services.task_service import fetch_and_save_all_companies_tasks, fetch_and_save_by_active_columns, save_tasks, calc_hours
 from django.http import HttpResponse
 
 def fetch_yougile_projects(request):
     #context = fetch_and_save('prosoft')
-    context = fetch_and_save_all_companies()
+    context = fetch_and_save_all_companies_projects()
 
     return HttpResponse(f'nahoi {context}')
 
@@ -35,6 +35,18 @@ def fetch_yougile_tasks(request):
     #context = fetch_and_save_all_companies_tasks()
     context = fetch_and_save_by_active_columns()
     return HttpResponse(f'fetch_yougile_tasks {context}')
+
+def fetch_all_except_tasks(request):
+    company = 'no'
+    if 'company' in request.GET:
+        company = request.GET['company']
+        fetch_and_save_projects(company)
+        fetch_and_save_boards(company)
+        fetch_and_save_columns(company)
+        fetch_and_save_users(company)
+
+    return HttpResponse(f'test {company}')
+
 
 
 from rest_framework.views import APIView

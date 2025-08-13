@@ -149,6 +149,7 @@ YG_DARTLAB_KEY = config('YG_DARTLAB_KEY', default='')
 YG_PROSOFT_KEY = config('YG_PROSOFT_KEY', default='')
 YG_PRODUCT_KEY = config('YG_PRODUCT_KEY', default='')
 YG_PM_KEY = config('YG_PM_KEY', default='')
+YG_INVESCORE_KEY = config('YG_INVESCORE_KEY', default='')
 YG_API_URL = config('YG_API_URL', default='https://yougile.com/api-v2') # Provide a sensible default for dev
 
 LOGIN_REDIRECT_URL = 'dashboard'

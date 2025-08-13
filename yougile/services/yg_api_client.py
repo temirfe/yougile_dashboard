@@ -18,6 +18,8 @@ class ExternalApiClient:
             self.token = settings.YG_PRODUCT_KEY
         elif company == 'pm':
             self.token = settings.YG_PM_KEY
+        elif company == 'invescore':
+            self.token = settings.YG_INVESCORE_KEY
         else:
             self.token = settings.YG_DARTLAB_KEY
 

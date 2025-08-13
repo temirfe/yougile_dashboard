@@ -44,12 +44,15 @@ def save_users(users):
 
         except ObjectDoesNotExist:
             # If the user does not exist, create a new one with a password
+            login = unidecode(first_name.lower())
+            if login == 'marat':
+                login = login + '2'
             user = User.objects.create_user(
                 email=item['email'],
                 password=first_name,
                 first_name=first_name,
                 last_name=last_name,
-                username=unidecode(first_name.lower())
+                username=login,
                 # Depending on your user model, you might need to provide a username
                 # username=email,
             )
@@ -59,7 +62,7 @@ def save_users(users):
 
 
 
-def fetch_and_save(company):
+def fetch_and_save_users(company):
     result = fetch_users(company)
     if result and 'content' in result:
         save_users(result['content'])
@@ -70,6 +73,6 @@ def fetch_and_save_all_companies_users():
     companies = ['dartlab','prosoft','product','pm']
     results =[]
     for company in companies:
-        res = fetch_and_save(company)
+        res = fetch_and_save_users(company)
         results.append(res)
     return results

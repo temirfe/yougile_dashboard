@@ -51,17 +51,17 @@ def save_projects(projects,company):
             # Example of basic error handling
             logger.error(f"Error processing project {project_data.get('id', 'N/A')}: {e}")
 
-def fetch_and_save(company):
+def fetch_and_save_projects(company):
     result = fetch_projects(company)
     if result and 'content' in result:
         save_projects(result['content'],company)
         return True
     return False
 
-def fetch_and_save_all_companies():
+def fetch_and_save_all_companies_projects():
     companies = ['dartlab','prosoft','product','pm']
     results =[]
     for company in companies:
-        res = fetch_and_save(company)
+        res = fetch_and_save_projects(company)
         results.append(res)
     return results
